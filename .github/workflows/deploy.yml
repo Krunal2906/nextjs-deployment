@@ -21,12 +21,15 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+        working-directory: ./my-next-app
 
       - name: Run Tests
         run: npm run test
+        working-directory: ./my-next-app
 
       - name: Build Project
         run: npm run build
+        working-directory: ./my-next-app
 
       - name: Deploy to Main Branch
         run: |
