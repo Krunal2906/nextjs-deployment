@@ -31,9 +31,9 @@ jobs:
         run: npm run build
         working-directory: ./my-next-app
 
-      - name: Add npm global binaries to PATH
-        run: |
-          echo "/root/.nvm/versions/node/v23.6.1/bin/" >> $GITHUB_PATH
+#      - name: Add npm global binaries to PATH
+#        run: |
+#          echo "/root/.nvm/versions/node/v23.6.1/bin/" >> $GITHUB_PATH
 
       - name: Deploy to Main Branch
         env:
@@ -49,6 +49,8 @@ jobs:
 
       - name: Start the Application
         run: |
+          source /root/.nvm/nvm.sh
+          export PATH="/root/.nvm/versions/node/v23.6.1/bin:$PATH"
           pm2 delete all || true
           pm2 start npm --name "nextjs-app" -- start
-          working-directory: ./my-next-app
+        working-directory: ./my-next-app
