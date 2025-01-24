@@ -31,6 +31,9 @@ jobs:
         run: npm run build
         working-directory: ./my-next-app
 
+      - name: Add npm global binaries to PATH
+        run: echo "::add-path::/root/.nvm/versions/node/v23.6.1/bin"
+
       - name: Deploy to Main Branch
         env:
           ACTIONS_PAT: ${{ secrets.ACTIONS_PAT }}
