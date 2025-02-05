@@ -52,6 +52,7 @@ jobs:
           export NVM_DIR="/home/krunal/.nvm"
           source $NVM_DIR/nvm.sh
           export PATH="$NVM_DIR/versions/node/$(nvm current)/bin:$PATH"
+          export NODE_OPTIONS="--dns-result-order=ipv4first"
           pm2 delete all || true
           pm2 start npm --name "nextjs-app" -- start
         working-directory: ./my-next-app
