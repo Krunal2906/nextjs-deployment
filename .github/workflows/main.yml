@@ -1,4 +1,4 @@
-name: Create Jira Ticket on Commit
+name: Create Jira Ticket
 
 on:
   push:
