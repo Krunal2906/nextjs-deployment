@@ -1,0 +1,86 @@
+name: Create Jira Ticket
+
+on:
+  push:
+    branches:
+      - main  # Triggers when code is pushed to the main branch
+
+jobs:
+  create-jira-ticket:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Ensure Git has history to detect changes
+
+      - name: Debug Commit SHA
+        run: |
+          echo "Commit SHA: ${{ github.sha }}"
+      - name: Get Changed Files
+        id: changed-files
+        run: |
+          echo "Fetching Git history..."
+          git fetch --prune --unshallow  # Ensure full Git history
+          
+          echo "Retrieving changed files for commit: ${{ github.sha }}"
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | tr '\n' ', ')
+          
+          echo "Changed Files: $CHANGED_FILES"  # Debug output
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_ENV  # Store in environment variable
+      - name: Create Jira Ticket
+        env:
+          JIRA_DOMAIN: ${{ secrets.JIRA_DOMAIN }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_ACCOUNT_ID: ${{ secrets.JIRA_ACCOUNT_ID }}
+        run: |
+          echo "Creating Jira issue..."
+          
+          curl --http1.1 --request POST \
+            --url "https://$JIRA_DOMAIN/rest/api/3/issue" \
+            --header "Authorization: Basic $(echo -n "$JIRA_EMAIL:$JIRA_API_TOKEN" | base64 | tr -d '\n')" \
+            --header "Accept: application/json" \
+            --header "Content-Type: application/json" \
+            --data '{
+              "fields": {
+                "project": { "key": "SCRUM" },
+                "issuetype": { "name": "Bug" },
+                "reporter": { "accountId": "'"$JIRA_ACCOUNT_ID"'" },
+                "summary": "New Commit by '${{ github.actor }}': '${{ github.sha }}'",
+                "description": {
+                  "type": "doc",
+                  "version": 1,
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Committer: ${{ github.actor }}\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Commit message: ${{ github.event.head_commit.message }}\n"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Changed Files: ${{ env.changed_files }}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }'
